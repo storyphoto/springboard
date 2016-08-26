@@ -3,6 +3,7 @@ package com.javalec.spring_16_1_ex1_srpingex.dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
@@ -61,6 +62,70 @@ public class BDao {
 	public ArrayList<BDto> list() {
 		
 		ArrayList<BDto> dtos = new ArrayList<BDto>();
+		
+		Connection connection = null;
+		PreparedStatement preparedStatement = null;
+		ResultSet rs = null;
+		
+		try {
+			connection = dataSource.getConnection();
+			String query = "select bId, bName, bTitle, bContent, bDate, bHit, bGroup, bStep, bIndent from mvc_board order by bGroup desc, bStep asc";
+			preparedStatement = connection.prepareStatement(query);
+			
+			rs = preparedStatement.executeQuery();
+			
+			while (rs.next()) {
+				int bId = rs.getInt("bId");
+				String bName = rs.getString("bName");
+				String bTitle = rs.getString("bTitle");
+				String bContent = rs.getString("bContent");
+				Timestamp bDate = rs.getTimestamp("bDate");
+				int bHit = rs.getInt("bHit");
+				int bGroup = rs.getInt("bGroup");
+				int bStep = rs.getInt("bStep");
+				int bIndent = rs.getInt("bIndent");
+				
+				BDto dto = new BDto(bId, bName, bTitle, bContent, bDate, bHit, bGroup, bStep, bIndent);
+				dtos.add(dto);
+				
+			}
+			
+			
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		finally {
+			try
+			{
+			if (connection != null)
+				connection.close();
+			if (preparedStatement != null)
+				preparedStatement.close();
+			if (rs != null)
+				rs.close();
+			}
+			catch (SQLException e)
+			{
+				e.printStackTrace();
+			}
+		}
+		return dtos;
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		/*ArrayList<BDto> dtos = new ArrayList<BDto>();
 		Connection connection = null;
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
@@ -100,7 +165,7 @@ public class BDao {
 				e2.printStackTrace();
 			}
 		}
-		return dtos;
+		return dtos;*/
 	}
 	
 	public BDto contentView(String strID) {
