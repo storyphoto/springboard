@@ -11,12 +11,18 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
 
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementSetter;
+
 import com.javalec.spring_16_1_ex1_srpingex.dto.BDto;
+import com.javalec.spring_16_1_ex1_srpingex.util.Constant;
 
 
 public class BDao {
 
 	DataSource dataSource;
+	JdbcTemplate template = null;
 	
 	public BDao() {
 		// TODO Auto-generated constructor stub
@@ -28,6 +34,8 @@ public class BDao {
 			// TODO: handle exception
 			e.printStackTrace();
 		}
+		
+		template = Constant.template;
 	}
 	
 	public void write(String bName, String bTitle, String bContent) {
@@ -60,59 +68,63 @@ public class BDao {
 	}
 	
 	public ArrayList<BDto> list() {
-		
-		ArrayList<BDto> dtos = new ArrayList<BDto>();
-		
-		Connection connection = null;
-		PreparedStatement preparedStatement = null;
-		ResultSet rs = null;
-		
-		try {
-			connection = dataSource.getConnection();
-			String query = "select bId, bName, bTitle, bContent, bDate, bHit, bGroup, bStep, bIndent from mvc_board order by bGroup desc, bStep asc";
-			preparedStatement = connection.prepareStatement(query);
-			
-			rs = preparedStatement.executeQuery();
-			
-			while (rs.next()) {
-				int bId = rs.getInt("bId");
-				String bName = rs.getString("bName");
-				String bTitle = rs.getString("bTitle");
-				String bContent = rs.getString("bContent");
-				Timestamp bDate = rs.getTimestamp("bDate");
-				int bHit = rs.getInt("bHit");
-				int bGroup = rs.getInt("bGroup");
-				int bStep = rs.getInt("bStep");
-				int bIndent = rs.getInt("bIndent");
-				
-				BDto dto = new BDto(bId, bName, bTitle, bContent, bDate, bHit, bGroup, bStep, bIndent);
-				dtos.add(dto);
-				
-			}
-			
-			
-			
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		finally {
-			try
-			{
-			if (connection != null)
-				connection.close();
-			if (preparedStatement != null)
-				preparedStatement.close();
-			if (rs != null)
-				rs.close();
-			}
-			catch (SQLException e)
-			{
-				e.printStackTrace();
-			}
-		}
+		ArrayList<BDto> dtos = null;				
+		String query = "select bId, bName, bTitle, bContent, bDate, bHit, bGroup, bStep, bIndent from mvc_board order by bGroup desc, bStep asc";
+		dtos = (ArrayList<BDto>)template.query(query, new BeanPropertyRowMapper<BDto> (BDto.class));
 		return dtos;
 		
-		
+//		ArrayList<BDto> dtos = new ArrayList<BDto>();
+//		
+//		Connection connection = null;
+//		PreparedStatement preparedStatement = null;
+//		ResultSet rs = null;
+//		
+//		try {
+//			connection = dataSource.getConnection();
+//			String query = "select bId, bName, bTitle, bContent, bDate, bHit, bGroup, bStep, bIndent from mvc_board order by bGroup desc, bStep asc";
+//			preparedStatement = connection.prepareStatement(query);
+//			
+//			rs = preparedStatement.executeQuery();
+//			
+//			while (rs.next()) {
+//				int bId = rs.getInt("bId");
+//				String bName = rs.getString("bName");
+//				String bTitle = rs.getString("bTitle");
+//				String bContent = rs.getString("bContent");
+//				Timestamp bDate = rs.getTimestamp("bDate");
+//				int bHit = rs.getInt("bHit");
+//				int bGroup = rs.getInt("bGroup");
+//				int bStep = rs.getInt("bStep");
+//				int bIndent = rs.getInt("bIndent");
+//				
+//				BDto dto = new BDto(bId, bName, bTitle, bContent, bDate, bHit, bGroup, bStep, bIndent);
+//				dtos.add(dto);
+//				
+//			}
+//			
+//			
+//			
+//		} catch (SQLException e) {
+//			e.printStackTrace();
+//		}
+//		finally {
+//			try
+//			{
+//			if (connection != null)
+//				connection.close();
+//			if (preparedStatement != null)
+//				preparedStatement.close();
+//			if (rs != null)
+//				rs.close();
+//			}
+//			catch (SQLException e)
+//			{
+//				e.printStackTrace();
+//			}
+//		}
+//		return dtos;
+//		
+//		
 		
 		
 		
@@ -173,48 +185,52 @@ public class BDao {
 		
 		upHit(strID);
 		
-		BDto dto = null;
-		Connection connection = null;
-		PreparedStatement preparedStatement = null;
-		ResultSet resultSet = null;
+		String query = "select * from mvc_board where bId = " + strID;
+		return template.queryForObject(query, new BeanPropertyRowMapper<BDto>(BDto.class));
 		
-		try {
-			
-			connection = dataSource.getConnection();
-			
-			String query = "select * from mvc_board where bId = ?";
-			preparedStatement = connection.prepareStatement(query);
-			preparedStatement.setInt(1, Integer.parseInt(strID));
-			resultSet = preparedStatement.executeQuery();
-			
-			if(resultSet.next()) {
-				int bId = resultSet.getInt("bId");
-				String bName = resultSet.getString("bName");
-				String bTitle = resultSet.getString("bTitle");
-				String bContent = resultSet.getString("bContent");
-				Timestamp bDate = resultSet.getTimestamp("bDate");
-				int bHit = resultSet.getInt("bHit");
-				int bGroup = resultSet.getInt("bGroup");
-				int bStep = resultSet.getInt("bStep");
-				int bIndent = resultSet.getInt("bIndent");
-				
-				dto = new BDto(bId, bName, bTitle, bContent, bDate, bHit, bGroup, bStep, bIndent);
-			}
-			
-		} catch (Exception e) {
-			// TODO: handle exception
-			e.printStackTrace();
-		} finally {
-			try {
-				if(resultSet != null) resultSet.close();
-				if(preparedStatement != null) preparedStatement.close();
-				if(connection != null) connection.close();
-			} catch (Exception e2) {
-				// TODO: handle exception
-				e2.printStackTrace();
-			}
-		}
-		return dto;
+//		
+//		BDto dto = null;
+//		Connection connection = null;
+//		PreparedStatement preparedStatement = null;
+//		ResultSet resultSet = null;
+//		
+//		try {
+//			
+//			connection = dataSource.getConnection();
+//			
+//			String query = "select * from mvc_board where bId = ?";
+//			preparedStatement = connection.prepareStatement(query);
+//			preparedStatement.setInt(1, Integer.parseInt(strID));
+//			resultSet = preparedStatement.executeQuery();
+//			
+//			if(resultSet.next()) {
+//				int bId = resultSet.getInt("bId");
+//				String bName = resultSet.getString("bName");
+//				String bTitle = resultSet.getString("bTitle");
+//				String bContent = resultSet.getString("bContent");
+//				Timestamp bDate = resultSet.getTimestamp("bDate");
+//				int bHit = resultSet.getInt("bHit");
+//				int bGroup = resultSet.getInt("bGroup");
+//				int bStep = resultSet.getInt("bStep");
+//				int bIndent = resultSet.getInt("bIndent");
+//				
+//				dto = new BDto(bId, bName, bTitle, bContent, bDate, bHit, bGroup, bStep, bIndent);
+//			}
+//			
+//		} catch (Exception e) {
+//			// TODO: handle exception
+//			e.printStackTrace();
+//		} finally {
+//			try {
+//				if(resultSet != null) resultSet.close();
+//				if(preparedStatement != null) preparedStatement.close();
+//				if(connection != null) connection.close();
+//			} catch (Exception e2) {
+//				// TODO: handle exception
+//				e2.printStackTrace();
+//			}
+//		}
+//		return dto;
 	}
 	
 	public void modify(String bId, String bName, String bTitle, String bContent) {
@@ -382,30 +398,40 @@ public class BDao {
 		}
 	}
 	
-	private void upHit( String bId) {
-		// TODO Auto-generated method stub
-		Connection connection = null;
-		PreparedStatement preparedStatement = null;
-		
-		try {
-			connection = dataSource.getConnection();
-			String query = "update mvc_board set bHit = bHit + 1 where bId = ?";
-			preparedStatement = connection.prepareStatement(query);
-			preparedStatement.setString(1, bId);
+	private void upHit(final String bId) {
+		String query = "update mvc_board set bHit = bHit + 1 where bId = ?";
+		template.update(query, new PreparedStatementSetter() {
 			
-			int rn = preparedStatement.executeUpdate();
-					
-		} catch (Exception e) {
-			// TODO: handle exception
-			e.printStackTrace();
-		} finally {
-			try {
-				if(preparedStatement != null) preparedStatement.close();
-				if(connection != null) connection.close();
-			} catch (Exception e2) {
-				// TODO: handle exception
-				e2.printStackTrace();
+			@Override
+			public void setValues(PreparedStatement ps) throws SQLException {
+				ps.setInt(1,  Integer.parseInt(bId));
+				
 			}
-		}
+		});
+		
+//		// TODO Auto-generated method stub
+//		Connection connection = null;
+//		PreparedStatement preparedStatement = null;
+//		
+//		try {
+//			connection = dataSource.getConnection();
+//			String query = "update mvc_board set bHit = bHit + 1 where bId = ?";
+//			preparedStatement = connection.prepareStatement(query);
+//			preparedStatement.setString(1, bId);
+//			
+//			int rn = preparedStatement.executeUpdate();
+//					
+//		} catch (Exception e) {
+//			// TODO: handle exception
+//			e.printStackTrace();
+//		} finally {
+//			try {
+//				if(preparedStatement != null) preparedStatement.close();
+//				if(connection != null) connection.close();
+//			} catch (Exception e2) {
+//				// TODO: handle exception
+//				e2.printStackTrace();
+//			}
+//		}
 	}
 }
