@@ -13,6 +13,7 @@ import javax.sql.DataSource;
 
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 
 import com.javalec.spring_16_1_ex1_srpingex.dto.BDto;
@@ -38,32 +39,46 @@ public class BDao {
 		template = Constant.template;
 	}
 	
-	public void write(String bName, String bTitle, String bContent) {
-		// TODO Auto-generated method stub
+	public void write(final String bName, final String bTitle, final String bContent) {
 		
-		Connection connection = null;
-		PreparedStatement preparedStatement = null;
 		
-		try {
-			connection = dataSource.getConnection();
-			String query = "insert into mvc_board (bId, bName, bTitle, bContent, bHit, bGroup, bStep, bIndent) values (mvc_board_seq.nextval, ?, ?, ?, 0, mvc_board_seq.currval, 0, 0 )";
-			preparedStatement = connection.prepareStatement(query);
-			preparedStatement.setString(1, bName);
-			preparedStatement.setString(2, bTitle);
-			preparedStatement.setString(3, bContent);
-			int rn = preparedStatement.executeUpdate();
-		} catch (Exception e) {
-			// TODO: handle exception
-			e.printStackTrace();
-		} finally {
-			try {
-				if(preparedStatement != null) preparedStatement.close();
-				if(connection != null) connection.close();
-			} catch (Exception e2) {
-				// TODO: handle exception
-				e2.printStackTrace();
+		template.update(new PreparedStatementCreator() {
+			
+			@Override
+			public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
+				String query = "insert into mvc_board (bId, bName, bTitle, bContent, bHit, bGroup, bStep, bIndent) values (mvc_board_seq.nextval, ?, ?, ?, 0, mvc_board_seq.currval, 0, 0 )";
+				PreparedStatement pstmt = con.prepareStatement(query);
+				pstmt.setString(1, bName);
+				pstmt.setString(2, bTitle);
+				pstmt.setString(3, bContent);
+				return pstmt;
 			}
-		}
+		});
+		
+		
+//		Connection connection = null;
+//		PreparedStatement preparedStatement = null;
+//		
+//		try {
+//			connection = dataSource.getConnection();
+//			String query = "insert into mvc_board (bId, bName, bTitle, bContent, bHit, bGroup, bStep, bIndent) values (mvc_board_seq.nextval, ?, ?, ?, 0, mvc_board_seq.currval, 0, 0 )";
+//			preparedStatement = connection.prepareStatement(query);
+//			preparedStatement.setString(1, bName);
+//			preparedStatement.setString(2, bTitle);
+//			preparedStatement.setString(3, bContent);
+//			int rn = preparedStatement.executeUpdate();
+//		} catch (Exception e) {
+//			// TODO: handle exception
+//			e.printStackTrace();
+//		} finally {
+//			try {
+//				if(preparedStatement != null) preparedStatement.close();
+//				if(connection != null) connection.close();
+//			} catch (Exception e2) {
+//				// TODO: handle exception
+//				e2.printStackTrace();
+//			}
+//		}
 		
 	}
 	
@@ -233,61 +248,80 @@ public class BDao {
 //		return dto;
 	}
 	
-	public void modify(String bId, String bName, String bTitle, String bContent) {
-		// TODO Auto-generated method stub
-		
-		Connection connection = null;
-		PreparedStatement preparedStatement = null;
-		
-		try {
-			connection = dataSource.getConnection();
+	public void modify(final String bId, final String bName, final String bTitle, final String bContent) {
+		String query = "update mvc_board set bName = ?, bTitle = ?, bContent = ? where bId = ?";
+		template.update(query, new PreparedStatementSetter() {
 			
-			String query = "update mvc_board set bName = ?, bTitle = ?, bContent = ? where bId = ?";
-			preparedStatement = connection.prepareStatement(query);
-			preparedStatement.setString(1, bName);
-			preparedStatement.setString(2, bTitle);
-			preparedStatement.setString(3, bContent);
-			preparedStatement.setInt(4, Integer.parseInt(bId));
-			int rn = preparedStatement.executeUpdate();
-			
-		} catch (Exception e) {
-			// TODO: handle exception
-			e.printStackTrace();
-		} finally {
-			try {
-				if(preparedStatement != null) preparedStatement.close();
-				if(connection != null) connection.close();
-			} catch (Exception e2) {
-				// TODO: handle exception
-				e2.printStackTrace();
+			@Override
+			public void setValues(PreparedStatement ps) throws SQLException {
+				ps.setString(1, bName);
+				ps.setString(2, bTitle);
+				ps.setString(3, bContent);
+				ps.setInt(4, Integer.parseInt(bId));
 			}
-		}
+		});
+		
+//		Connection connection = null;
+//		PreparedStatement preparedStatement = null;
+//		
+//		try {
+//			connection = dataSource.getConnection();
+//			
+//			String query = "update mvc_board set bName = ?, bTitle = ?, bContent = ? where bId = ?";
+//			preparedStatement = connection.prepareStatement(query);
+//			preparedStatement.setString(1, bName);
+//			preparedStatement.setString(2, bTitle);
+//			preparedStatement.setString(3, bContent);
+//			preparedStatement.setInt(4, Integer.parseInt(bId));
+//			int rn = preparedStatement.executeUpdate();
+//			
+//		} catch (Exception e) {
+//			// TODO: handle exception
+//			e.printStackTrace();
+//		} finally {
+//			try {
+//				if(preparedStatement != null) preparedStatement.close();
+//				if(connection != null) connection.close();
+//			} catch (Exception e2) {
+//				// TODO: handle exception
+//				e2.printStackTrace();
+//			}
+//		}
 	}
 	
-	public void delete(String bId) {
-		// TODO Auto-generated method stub
-		Connection connection = null;
-		PreparedStatement preparedStatement = null;
-		try {
+	public void delete(final String bId) {
+		String query = "delete from mvc_board where bId = ?";
+		template.update(query, new PreparedStatementSetter() {
 			
-			connection = dataSource.getConnection();
-			String query = "delete from mvc_board where bId = ?";
-			preparedStatement = connection.prepareStatement(query);
-			preparedStatement.setInt(1, Integer.parseInt(bId));
-			int rn = preparedStatement.executeUpdate();
-			
-		} catch (Exception e) {
-			// TODO: handle exception
-			e.printStackTrace();
-		} finally {
-			try {
-				if(preparedStatement != null) preparedStatement.close();
-				if(connection != null) connection.close();
-			} catch (Exception e2) {
-				// TODO: handle exception
-				e2.printStackTrace();
+			@Override
+			public void setValues(PreparedStatement ps) throws SQLException {
+				ps.setInt(1, Integer.parseInt(bId));
 			}
-		}
+		});
+		
+		
+//		Connection connection = null;
+//		PreparedStatement preparedStatement = null;
+//		try {
+//			
+//			connection = dataSource.getConnection();
+//			String query = "delete from mvc_board where bId = ?";
+//			preparedStatement = connection.prepareStatement(query);
+//			preparedStatement.setInt(1, Integer.parseInt(bId));
+//			int rn = preparedStatement.executeUpdate();
+//			
+//		} catch (Exception e) {
+//			// TODO: handle exception
+//			e.printStackTrace();
+//		} finally {
+//			try {
+//				if(preparedStatement != null) preparedStatement.close();
+//				if(connection != null) connection.close();
+//			} catch (Exception e2) {
+//				// TODO: handle exception
+//				e2.printStackTrace();
+//			}
+//		}
 	}
 	
 	public BDto reply_view(String str) {
